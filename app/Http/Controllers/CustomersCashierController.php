@@ -2,17 +2,18 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\CustomersCashier;
+use App\Models\Order;
 use Illuminate\Http\Request;
 
 class CustomersCashierController extends Controller
 {
+    // List all orders (with customer & items)
     public function index()
     {
-        // Include customer and cashier details in response
-        return CustomersCashier::with(['customer', 'cashier', 'items'])->get();
+        return Order::with(['customer', 'cashier', 'items'])->get();
     }
 
+    // Create new order (customer)
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -20,25 +21,34 @@ class CustomersCashierController extends Controller
             'checkout_date' => 'required|date',
             'cashier_id' => 'nullable|exists:cashiers,id'
         ]);
-        $order = CustomersCashier::create($validated);
+
+        $order = Order::create($validated);
         return response()->json($order, 201);
     }
 
+    // Show single order
     public function show($id)
     {
-        return CustomersCashier::with(['customer', 'cashier', 'items'])->findOrFail($id);
+        return Order::with(['customer', 'cashier', 'items'])->findOrFail($id);
     }
 
+    // Update order (cashier confirms)
     public function update(Request $request, $id)
     {
-        $order = CustomersCashier::findOrFail($id);
-        $order->update($request->all());
-        return $order;
+        $order = Order::findOrFail($id);
+
+        $validated = $request->validate([
+            'cashier_id' => 'required|exists:cashiers,id'
+        ]);
+
+        $order->update($validated);
+        return response()->json($order);
     }
 
+    // Delete order (optional)
     public function destroy($id)
     {
-        CustomersCashier::destroy($id);
+        Order::destroy($id);
         return response()->json(null, 204);
     }
 }

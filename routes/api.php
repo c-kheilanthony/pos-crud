@@ -37,6 +37,9 @@ Route::middleware(['auth:sanctum', 'role:cashier'])->group(function () {
         return $request->user();
     });
 
+    // Cashier can view orders
+    Route::get('orders', [CustomersCashierController::class, 'index']);
+
     // Cashier can manage inventory
     Route::apiResource('items', ItemController::class)->except(['index']); // manage stock
 
