@@ -44,7 +44,11 @@ export interface User {
 
 export interface OrderWithItems {
     id: number;
-    customer: { name: string };
+    customer: {
+        name: string;
+        address?: string; // optional in case it's missing
+        contact?: string; // optional in case it's missing
+    };
     cashier_id: number | null;
     items: Array<{
         id: number;

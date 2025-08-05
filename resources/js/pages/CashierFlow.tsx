@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 import { CashierLoginForm } from '../components/cashier/CashierLoginForm';
 import { ItemFormDialog } from '../components/cashier/ItemFormDialog';
 import { Item, ItemsTable } from '../components/cashier/ItemsTable';
@@ -30,16 +31,19 @@ export default function CashierFlow() {
     const addItem = async (data: { name: string; price: number; stock: number }) => {
         await api.post('/items', data);
         await fetchItems();
+        toast.success('Item added');
     };
 
     const updateItem = async (id: number, data: { name: string; price: number; stock: number }) => {
         await api.put(`/items/${id}`, data);
         await fetchItems();
+        toast.success('Item updated');
     };
 
     const deleteItem = async (id: number) => {
         await api.delete(`/items/${id}`);
         await fetchItems();
+        toast.success('Item deleted');
     };
 
     const logout = () => {
@@ -78,7 +82,7 @@ export default function CashierFlow() {
 
             <div className="flex gap-6">
                 {/* Left: Items Management */}
-                <div className="w-2/5 space-y-4">
+                <div className="w-[48%] space-y-4">
                     <div className="flex items-center justify-between">
                         <h3 className="text-xl font-semibold">Manage Items</h3>
                         <Button
@@ -101,16 +105,25 @@ export default function CashierFlow() {
                 </div>
 
                 {/* Right: Orders */}
-                <div className="w-3/5 space-y-4">
+                <div className="w-[58%] space-y-4">
                     <div className="flex items-center justify-between">
                         <h3 className="text-xl font-semibold">Pending Orders</h3>
-                        <Button onClick={fetchOrders}>Refresh Orders</Button>
                     </div>
                     <OrdersList
                         orders={orders}
                         onView={(order) => {
                             setSelectedOrder(order);
                             setShowOrderModal(true);
+                        }}
+                        onConfirm={async (id) => {
+                            await api.put(`/orders/${id}`, { cashier_id: 1 });
+                            await fetchOrders();
+                            toast.success('Order confirmed');
+                        }}
+                        onReject={async (id) => {
+                            await api.delete(`/orders/${id}`);
+                            await fetchOrders();
+                            toast.error('Order rejected');
                         }}
                     />
                 </div>

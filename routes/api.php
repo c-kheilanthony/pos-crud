@@ -51,4 +51,7 @@ Route::middleware(['auth:sanctum', 'role:cashier'])->group(function () {
 
     // Manage order-items except create (customer creates)
     Route::apiResource('order-items', OrdersItemController::class)->except(['store']);
+
+    // Cashier can delete orders
+    Route::delete('orders/{id}', [CustomersCashierController::class, 'destroy']);
 });

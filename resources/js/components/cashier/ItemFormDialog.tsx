@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 import { Button } from '../ui/button';
 import { Card } from '../ui/card';
 import { Input } from '../ui/input';
@@ -28,6 +29,24 @@ export function ItemFormDialog({ open, onClose, onSubmit, initialData }: Props) 
         }
     }, [initialData, open]);
 
+    const handleSubmit = () => {
+        if (!name.trim()) {
+            toast.error('Name cannot be empty');
+            return;
+        }
+        if (price <= 0) {
+            toast.error('Price must be greater than zero');
+            return;
+        }
+        if (stock <= 0) {
+            toast.error('Stock must be greater than zero');
+            return;
+        }
+        onSubmit({ name: name.trim(), price, stock });
+        toast.success(initialData ? 'Item updated' : 'Item added');
+        onClose();
+    };
+
     if (!open) return null;
 
     return (
@@ -50,14 +69,7 @@ export function ItemFormDialog({ open, onClose, onSubmit, initialData }: Props) 
                     <Button variant="outline" onClick={onClose}>
                         Cancel
                     </Button>
-                    <Button
-                        onClick={() => {
-                            onSubmit({ name, price, stock });
-                            onClose();
-                        }}
-                    >
-                        {initialData ? 'Update' : 'Add'}
-                    </Button>
+                    <Button onClick={handleSubmit}>{initialData ? 'Update' : 'Add'}</Button>
                 </div>
             </Card>
         </div>
