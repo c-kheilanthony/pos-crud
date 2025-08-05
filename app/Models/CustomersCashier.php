@@ -3,6 +3,10 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Customer;      
+use App\Models\Cashier;      
+use App\Models\OrdersItem; 
+
 
 class CustomersCashier extends Model
 {

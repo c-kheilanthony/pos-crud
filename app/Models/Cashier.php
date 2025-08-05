@@ -2,11 +2,13 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Laravel\Sanctum\HasApiTokens;
 
-class Cashier extends Model
+class Cashier extends Authenticatable
 {
-    protected $fillable = ['name', 'counter'];
+    use HasApiTokens;
+    protected $fillable = ['name', 'counter', 'email', 'password'];
 
     public function orders()
     {

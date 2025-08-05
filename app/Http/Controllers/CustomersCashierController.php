@@ -17,10 +17,9 @@ class CustomersCashierController extends Controller
     {
         $validated = $request->validate([
             'customer_id' => 'required|exists:customers,id',
-            'cashier_id'  => 'required|exists:cashiers,id',
-            'checkout_date' => 'required|date'
+            'checkout_date' => 'required|date',
+            'cashier_id' => 'nullable|exists:cashiers,id'
         ]);
-
         $order = CustomersCashier::create($validated);
         return response()->json($order, 201);
     }

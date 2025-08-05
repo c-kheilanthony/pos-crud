@@ -3,10 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\CustomersCashier;  
+use App\Models\Item;            
 
 class OrdersItem extends Model
 {
     protected $fillable = ['order_id', 'item_id', 'quantity'];
+
 
     public function order()
     {
