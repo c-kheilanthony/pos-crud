@@ -41,3 +41,18 @@ export interface User {
     updated_at: string;
     [key: string]: unknown; // This allows for additional properties...
 }
+
+export interface OrderWithItems {
+    id: number;
+    customer: { name: string };
+    cashier_id: number | null;
+    items: Array<{
+        id: number;
+        name: string;
+        price: number;
+        stock: number;
+        pivot: {
+            quantity: number;
+        };
+    }>;
+}

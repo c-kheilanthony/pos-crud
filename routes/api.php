@@ -24,10 +24,13 @@ Route::middleware(['auth:sanctum', 'role:customer'])->group(function () {
     });
 
     // Customers can view items and create orders
-    Route::get('items', [ItemController::class, 'index']); // browse items
+    // Public for both authenticated roles
+
     Route::post('orders', [CustomersCashierController::class, 'store']); // create order
     Route::post('order-items', [OrdersItemController::class, 'store']); // add item to order
 });
+
+Route::middleware(['auth:sanctum'])->get('items', [ItemController::class, 'index']);
 
 // ----------------------------
 // Cashier Protected Routes
