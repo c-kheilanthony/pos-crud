@@ -44,11 +44,18 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // Create Items
+// Create Items
         \App\Models\Item::insert([
-            ['name' => 'Potion', 'price' => 100, 'stock' => 10],
-            ['name' => 'Pokeball', 'price' => 200, 'stock' => 20],
-            ['name' => 'Super Potion', 'price' => 300, 'stock' => 5],
-            ['name' => 'Revive', 'price' => 1500, 'stock' => 3],
+            ['name' => 'Ultra Ball', 'price' => 1200, 'stock' => 30],
+            ['name' => 'Hyper Potion', 'price' => 1500, 'stock' => 10],
+            ['name' => 'Full Restore', 'price' => 3000, 'stock' => 5],
+            ['name' => 'Antidote', 'price' => 100, 'stock' => 20],
+            ['name' => 'Paralyze Heal', 'price' => 200, 'stock' => 15],
+            ['name' => 'Max Potion', 'price' => 2500, 'stock' => 8],
+            ['name' => 'Escape Rope', 'price' => 500, 'stock' => 12],
+            ['name' => 'Repel', 'price' => 350, 'stock' => 18],
+            ['name' => 'X Attack', 'price' => 250, 'stock' => 25],
+            ['name' => 'X Defense', 'price' => 250, 'stock' => 25],
         ]);
     }
 }
