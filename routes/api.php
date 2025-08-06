@@ -8,6 +8,7 @@ use App\Http\Controllers\CashierController;
 use App\Http\Controllers\ItemController;
 use App\Http\Controllers\CustomersCashierController;
 use App\Http\Controllers\OrdersItemController;
+use App\Http\Controllers\SubscriptionController;
 
 // ----------------------------
 // Public Routes
@@ -23,12 +24,16 @@ Route::middleware(['auth:sanctum', 'role:customer'])->group(function () {
         return $request->user();
     });
 
-    // Customers can view items and create orders
-    // Public for both authenticated roles
+    // Customers can subscribe/unsubscribe to items
+    Route::post('items/{item}/subscribe', [SubscriptionController::class, 'subscribe']);
+    Route::delete('items/{item}/subscribe', [SubscriptionController::class, 'unsubscribe']);
+    Route::get('subscriptions', [SubscriptionController::class, 'list']);
 
+    // Customers can view items and create orders
     Route::post('orders', [CustomersCashierController::class, 'store']); // create order
     Route::post('order-items', [OrdersItemController::class, 'store']); // add item to order
 });
+
 
 Route::middleware(['auth:sanctum'])->get('items', [ItemController::class, 'index']);
 

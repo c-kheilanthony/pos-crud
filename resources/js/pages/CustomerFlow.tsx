@@ -5,18 +5,31 @@ import { CartPanel } from '../components/customer/CartPanel';
 import { LoginForm } from '../components/customer/CustomerLoginForm';
 import { Item, ItemsGrid } from '../components/customer/ItemsGrid';
 import api from '../lib/customerApi';
+import { echo } from '../lib/echo';
 
 export default function CustomerFlow() {
-    localStorage.removeItem('cashierToken');
-
     const [token, setToken] = useState(localStorage.getItem('customerToken'));
     const [items, setItems] = useState<Item[]>([]);
     const [cart, setCart] = useState<Record<number, number>>({});
+    const [customerId, setCustomerId] = useState<number | null>(null);
 
     const fetchItems = async () => {
         const { data } = await api.get<Item[]>('/items');
         setItems(data);
     };
+
+    useEffect(() => {
+        if (!customerId) return;
+
+        const channel = echo.private(`customer.${customerId}`).listen('.item.restocked', (e: any) => {
+            console.log('Restocked event for you →', e);
+            toast.info(`${e.item_name} is back in stock!`);
+        });
+
+        return () => {
+            channel.stopListening('.item.restocked');
+        };
+    }, [customerId]);
 
     const changeQty = (id: number, delta: number) =>
         setCart((c) => {
@@ -48,7 +61,8 @@ export default function CustomerFlow() {
 
     const validateToken = async () => {
         try {
-            await api.get('/customer/me');
+            const { data } = await api.get('/customer/me'); // returns customer
+            setCustomerId(data.id); // <- save id
         } catch {
             logout();
         }

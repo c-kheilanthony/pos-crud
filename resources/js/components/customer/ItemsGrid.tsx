@@ -1,5 +1,6 @@
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { useState } from 'react';
+import { ChevronLeft, ChevronRight, Star } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { fetchSubscriptions, subscribeToItem, unsubscribeFromItem } from '../../lib/customerApi';
 import { Button } from '../ui/button';
 
 export interface Item {
@@ -18,12 +19,32 @@ interface ItemsGridProps {
 export function ItemsGrid({ items, cart, onChangeQty }: ItemsGridProps) {
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 8;
-
     const indexOfLast = currentPage * itemsPerPage;
-    const indexOfFirst = indexOfLast - itemsPerPage;
-    const currentItems = items.slice(indexOfFirst, indexOfLast);
-
+    const currentItems = items.slice(indexOfLast - itemsPerPage, indexOfLast);
     const totalPages = Math.ceil(items.length / itemsPerPage);
+
+    const [subscribed, setSubscribed] = useState<number[]>([]);
+
+    useEffect(() => {
+        fetchSubscriptions().then(setSubscribed).catch(console.error);
+    }, []);
+
+    async function toggleSubscription(itemId: number) {
+        try {
+            if (subscribed.includes(itemId)) {
+                await unsubscribeFromItem(itemId);
+                setSubscribed((s) => s.filter((id) => id !== itemId));
+            } else {
+                await subscribeToItem(itemId);
+                setSubscribed((s) => [...s, itemId]);
+            }
+            console.log('Now subscribed:', subscribed);
+        } catch (err) {
+            console.error('Subscription error', err);
+        }
+    }
+
+    const isSubscribed = (id: number) => subscribed.includes(id);
 
     return (
         <div className="flex h-full flex-col">
@@ -37,39 +58,52 @@ export function ItemsGrid({ items, cart, onChangeQty }: ItemsGridProps) {
                             <th className="border p-2 text-center">Qty</th>
                         </tr>
                     </thead>
+
                     <tbody>
                         {currentItems.map((item) => (
                             <tr key={item.id}>
-                                {/* Truncate item name visually but show full via tooltip */}
+                                {/* Item name -- clickable toggle */}
                                 <td className="border p-2">
-                                    <div className="max-w-[100px] truncate" title={item.name}>
-                                        {item.name}
-                                    </div>
+                                    <button
+                                        className={`flex max-w-[100px] items-center space-x-1 truncate ${
+                                            isSubscribed(item.id) ? 'text-indigo-600' : ''
+                                        }`}
+                                        title={isSubscribed(item.id) ? 'Click to unsubscribe' : 'Click to be notified on restock'}
+                                        onClick={() => toggleSubscription(item.id)}
+                                    >
+                                        {isSubscribed(item.id) && (
+                                            <Star className="h-4 w-4 shrink-0 text-yellow-500" fill="currentColor" stroke="currentColor" />
+                                        )}
+                                        <span className="truncate">{item.name}</span>
+                                    </button>
                                 </td>
 
-                                {/* Price capped to +9,999 */}
+                                {/* price */}
                                 <td className="border p-2 text-right">₱{item.price > 9999 ? '9,999' : item.price}</td>
 
-                                {/* Stock capped to +99 */}
+                                {/* stock */}
                                 <td className="border p-2 text-center">{item.stock > 99 ? '+99' : Math.max(0, item.stock)}</td>
 
+                                {/* qty controls (unchanged) */}
                                 <td className="border p-2 text-center">
                                     <Button size="icon" onClick={() => onChangeQty(item.id, -1)} disabled={!cart[item.id] || cart[item.id] <= 0}>
                                         –
                                     </Button>
+
                                     <input
                                         type="number"
                                         value={Math.min(cart[item.id] || 0, 99)}
                                         onChange={(e) => {
                                             let val = parseInt(e.target.value, 10);
                                             if (isNaN(val)) val = 0;
-                                            val = Math.max(0, Math.min(item.stock, val)); // Clamp between 0 and stock
+                                            val = Math.max(0, Math.min(item.stock, val));
                                             onChangeQty(item.id, val - (cart[item.id] || 0));
                                         }}
                                         className="w-12 [appearance:textfield] rounded border text-center focus:ring-1 focus:ring-blue-400 focus:outline-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                                         min={0}
                                         max={Math.min(item.stock, 99)}
                                     />
+
                                     <Button
                                         size="icon"
                                         onClick={() => onChangeQty(item.id, +1)}
@@ -81,9 +115,9 @@ export function ItemsGrid({ items, cart, onChangeQty }: ItemsGridProps) {
                             </tr>
                         ))}
 
-                        {/* Pad out empty rows up to itemsPerPage */}
-                        {Array.from({ length: itemsPerPage - currentItems.length }).map((_, idx) => (
-                            <tr key={`empty-${idx}`} className="h-12">
+                        {/* filler rows */}
+                        {Array.from({ length: itemsPerPage - currentItems.length }).map((_, i) => (
+                            <tr key={`empty-${i}`} className="h-12">
                                 <td className="border p-2">&nbsp;</td>
                                 <td className="border p-2">&nbsp;</td>
                                 <td className="border p-2">&nbsp;</td>
@@ -94,7 +128,7 @@ export function ItemsGrid({ items, cart, onChangeQty }: ItemsGridProps) {
                 </table>
             </div>
 
-            {/* Pagination footer */}
+            {/* pagination footer */}
             {totalPages > 1 && (
                 <div className="mt-4 flex items-center justify-center space-x-2">
                     <Button size="icon" variant="ghost" onClick={() => setCurrentPage((p) => Math.max(1, p - 1))} disabled={currentPage === 1}>
