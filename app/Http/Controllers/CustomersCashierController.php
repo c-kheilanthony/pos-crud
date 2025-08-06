@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\Mail;
+use App\Mail\OrderReceiptMail;
 use App\Models\Order;
 use App\Http\Requests\StoreOrderRequest;
 use App\Http\Requests\UpdateOrderRequest;
@@ -36,13 +38,26 @@ class CustomersCashierController extends Controller
     // Update order (cashier confirms)
     public function update(UpdateOrderRequest $request, $id)
     {
-        $order = Order::findOrFail($id);
+        $order = Order::with(['customer', 'items'])->findOrFail($id);
 
         $validated = $request->validated();
-
         $order->update($validated);
-        return response()->json($order);
+
+        foreach ($order->items as $item) {
+            $item->decrement('stock', $item->pivot->quantity);
+        }
+
+        if ($order->customer && $order->customer->email) {
+            Mail::to($order->customer->email)->queue(new OrderReceiptMail($order));
+        }
+
+        return response()->json([
+            'message' => 'Order confirmed, stock updated, and email queued.',
+            'order' => $order
+        ]);
     }
+
+
 
     // Delete order (optional)
     public function destroy($id)

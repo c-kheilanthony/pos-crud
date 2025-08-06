@@ -51,10 +51,10 @@ export function ItemsGrid({ items, cart, onChangeQty }: ItemsGridProps) {
                                 <td className="border p-2 text-right">₱{item.price > 9999 ? '9,999' : item.price}</td>
 
                                 {/* Stock capped to +99 */}
-                                <td className="border p-2 text-center">{item.stock > 99 ? '+99' : item.stock}</td>
+                                <td className="border p-2 text-center">{item.stock > 99 ? '+99' : Math.max(0, item.stock)}</td>
 
                                 <td className="border p-2 text-center">
-                                    <Button size="icon" onClick={() => onChangeQty(item.id, -1)} disabled={!cart[item.id]}>
+                                    <Button size="icon" onClick={() => onChangeQty(item.id, -1)} disabled={!cart[item.id] || cart[item.id] <= 0}>
                                         –
                                     </Button>
                                     <input
@@ -63,15 +63,18 @@ export function ItemsGrid({ items, cart, onChangeQty }: ItemsGridProps) {
                                         onChange={(e) => {
                                             let val = parseInt(e.target.value, 10);
                                             if (isNaN(val)) val = 0;
-                                            val = Math.max(0, Math.min(item.stock, val)); // Clamp to stock
+                                            val = Math.max(0, Math.min(item.stock, val)); // Clamp between 0 and stock
                                             onChangeQty(item.id, val - (cart[item.id] || 0));
                                         }}
                                         className="w-12 [appearance:textfield] rounded border text-center focus:ring-1 focus:ring-blue-400 focus:outline-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                                         min={0}
                                         max={Math.min(item.stock, 99)}
                                     />
-
-                                    <Button size="icon" onClick={() => onChangeQty(item.id, +1)} disabled={cart[item.id] >= item.stock}>
+                                    <Button
+                                        size="icon"
+                                        onClick={() => onChangeQty(item.id, +1)}
+                                        disabled={item.stock === 0 || (cart[item.id] || 0) >= item.stock}
+                                    >
                                         +
                                     </Button>
                                 </td>

@@ -38,8 +38,8 @@ export function ItemFormDialog({ open, onClose, onSubmit, initialData }: Props) 
             toast.error('Price must be greater than zero');
             return;
         }
-        if (stock <= 0) {
-            toast.error('Stock must be greater than zero');
+        if (stock < 0) {
+            toast.error('Stock must not be less than zero');
             return;
         }
         onSubmit({ name: name.trim(), price, stock });

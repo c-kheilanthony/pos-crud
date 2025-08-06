@@ -58,6 +58,19 @@ export default function CashierFlow() {
         }
     };
 
+    const confirmOrder = async (order: OrderWithItems) => {
+        // Validate stock
+        const outOfStockItems = order.items.filter((i) => i.stock < i.pivot.quantity);
+        if (outOfStockItems.length > 0) {
+            toast.error(`Cannot confirm. Out of stock: ${outOfStockItems.map((i) => i.name).join(', ')}`);
+            return false;
+        }
+
+        await api.put(`/orders/${order.id}`, { cashier_id: 1 });
+        toast.success('Order confirmed and stock updated');
+        return true;
+    };
+
     const logout = () => {
         localStorage.removeItem('cashierToken');
         setToken(null);
@@ -128,9 +141,14 @@ export default function CashierFlow() {
                             setShowOrderModal(true);
                         }}
                         onConfirm={async (id) => {
-                            await api.put(`/orders/${id}`, { cashier_id: 1 });
-                            await fetchOrders();
-                            toast.success('Order confirmed');
+                            const order = orders.find((o) => o.id === id);
+                            if (!order) return;
+
+                            const success = await confirmOrder(order);
+                            if (success) {
+                                await fetchOrders();
+                                await fetchItems();
+                            }
                         }}
                         onReject={async (id) => {
                             await api.delete(`/orders/${id}`);
@@ -161,24 +179,14 @@ export default function CashierFlow() {
                     fetchOrders();
                 }}
                 onConfirm={async (id) => {
-                    await api.put(`/orders/${id}`, { cashier_id: 1 });
-                    toast.success('Order confirmed');
-                    if (selectedOrder) {
-                        await Promise.all(
-                            selectedOrder.items.map((i) =>
-                                api.put(`/items/${i.id}`, {
-                                    name: i.name,
-                                    price: i.price,
-                                    stock: i.stock - i.pivot.quantity,
-                                }),
-                            ),
-                        );
-                    }
+                    if (!selectedOrder) return;
 
-                    // 3) close & refresh
-                    setShowOrderModal(false);
-                    await fetchOrders();
-                    await fetchItems();
+                    const success = await confirmOrder(selectedOrder);
+                    if (success) {
+                        setShowOrderModal(false);
+                        await fetchOrders();
+                        await fetchItems();
+                    }
                 }}
             />
         </div>

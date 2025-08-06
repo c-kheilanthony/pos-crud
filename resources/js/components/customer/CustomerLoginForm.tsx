@@ -10,7 +10,7 @@ interface LoginFormProps {
 }
 
 export function LoginForm({ onSuccess }: LoginFormProps) {
-    const [email, setEmail] = useState('ash@example.com');
+    const [email, setEmail] = useState('cunanankheilanthony@gmail.com');
     const [password, setPassword] = useState('pikachu');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
