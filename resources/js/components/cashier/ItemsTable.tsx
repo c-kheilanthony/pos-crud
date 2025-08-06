@@ -18,7 +18,7 @@ interface Props {
 
 export function ItemsTable({ items, onEdit, onDelete }: Props) {
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 8;
+    const itemsPerPage = 7;
 
     const indexOfLast = currentPage * itemsPerPage;
     const indexOfFirst = indexOfLast - itemsPerPage;

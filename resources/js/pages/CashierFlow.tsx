@@ -144,12 +144,13 @@ export default function CashierFlow() {
                 onClose={() => setShowOrderModal(false)}
                 onReject={async (id) => {
                     await api.delete(`/orders/${id}`);
+                    toast.error('Order rejected');
                     setShowOrderModal(false);
                     fetchOrders();
                 }}
                 onConfirm={async (id) => {
                     await api.put(`/orders/${id}`, { cashier_id: 1 });
-
+                    toast.success('Order confirmed');
                     if (selectedOrder) {
                         await Promise.all(
                             selectedOrder.items.map((i) =>
