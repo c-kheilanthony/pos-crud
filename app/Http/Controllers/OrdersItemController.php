@@ -3,7 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\OrdersItem;
-use Illuminate\Http\Request;
+use App\Http\Requests\StoreOrdersItemRequest;
+use App\Http\Requests\UpdateOrdersItemRequest;
 
 class OrdersItemController extends Controller
 {
@@ -12,13 +13,9 @@ class OrdersItemController extends Controller
         return OrdersItem::with(['order.customer', 'item'])->get();
     }
 
-    public function store(Request $request)
+    public function store(StoreOrdersItemRequest $request)
     {
-        $validated = $request->validate([
-            'order_id' => 'required|exists:orders,id',
-            'item_id'  => 'required|exists:items,id',
-            'quantity' => 'required|integer|min:1'
-        ]);
+        $validated = $request->validated();
 
         $orderItem = OrdersItem::create($validated);
         return response()->json($orderItem, 201);
@@ -29,10 +26,10 @@ class OrdersItemController extends Controller
         return OrdersItem::with(['order.customer', 'item'])->findOrFail($id);
     }
 
-    public function update(Request $request, $id)
+    public function update(UpdateOrdersItemRequest $request, $id)
     {
         $orderItem = OrdersItem::findOrFail($id);
-        $orderItem->update($request->all());
+        $orderItem->update($request->validated());
         return $orderItem;
     }
 

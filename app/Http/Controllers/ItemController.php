@@ -3,7 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Item;
-use Illuminate\Http\Request;
+use App\Http\Requests\StoreItemRequest;
+use App\Http\Requests\UpdateItemRequest;
 
 class ItemController extends Controller
 {
@@ -12,13 +13,9 @@ class ItemController extends Controller
         return Item::all();
     }
 
-    public function store(Request $request)
+    public function store(StoreItemRequest $request)
     {
-        $validated = $request->validate([
-            'name'  => 'required|string',
-            'price' => 'required|numeric|min:0',
-            'stock' => 'required|integer|min:0',
-        ]);
+        $validated = $request->validated();
 
         $item = Item::create($validated);
         return response()->json($item, 201);
@@ -29,10 +26,10 @@ class ItemController extends Controller
         return Item::findOrFail($id);
     }
 
-    public function update(Request $request, $id)
+    public function update(UpdateItemRequest $request, $id)
     {
         $item = Item::findOrFail($id);
-        $item->update($request->all());
+        $item->update($request->validated());
         return $item;
     }
 

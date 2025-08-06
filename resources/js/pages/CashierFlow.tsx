@@ -29,21 +29,33 @@ export default function CashierFlow() {
     };
 
     const addItem = async (data: { name: string; price: number; stock: number }) => {
-        await api.post('/items', data);
-        await fetchItems();
-        toast.success('Item added');
+        try {
+            await api.post('/items', data);
+            await fetchItems();
+            toast.success('Item added');
+        } catch (error: any) {
+            toast.error(error.response?.data?.message || 'Failed to add item');
+        }
     };
 
     const updateItem = async (id: number, data: { name: string; price: number; stock: number }) => {
-        await api.put(`/items/${id}`, data);
-        await fetchItems();
-        toast.success('Item updated');
+        try {
+            await api.put(`/items/${id}`, data);
+            await fetchItems();
+            toast.success('Item updated');
+        } catch (error: any) {
+            toast.error(error.response?.data?.message || 'Failed to update item');
+        }
     };
 
     const deleteItem = async (id: number) => {
-        await api.delete(`/items/${id}`);
-        await fetchItems();
-        toast.success('Item deleted');
+        try {
+            await api.delete(`/items/${id}`);
+            await fetchItems();
+            toast.success('Item deleted');
+        } catch (error: any) {
+            toast.error(error.response?.data?.message || 'Failed to delete item');
+        }
     };
 
     const logout = () => {

@@ -3,7 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Customer;
-use Illuminate\Http\Request;
+use App\Http\Requests\StoreCustomerRequest;
+use App\Http\Requests\UpdateCustomerRequest;
 
 class CustomerController extends Controller
 {
@@ -12,13 +13,9 @@ class CustomerController extends Controller
         return Customer::all();
     }
 
-    public function store(Request $request)
+    public function store(StoreCustomerRequest $request)
     {
-        $validated = $request->validate([
-            'name'    => 'required|string|max:255',
-            'address' => 'required|string|max:255',
-            'contact' => 'required|string|max:20',
-        ]);
+        $validated = $request->validated();
 
         $customer = Customer::create($validated);
         return response()->json($customer, 201);
@@ -29,10 +26,10 @@ class CustomerController extends Controller
         return Customer::findOrFail($id);
     }
 
-    public function update(Request $request, $id)
+    public function update(UpdateCustomerRequest $request, $id)
     {
         $customer = Customer::findOrFail($id);
-        $customer->update($request->all());
+        $customer->update($request->validated());
         return $customer;
     }
 

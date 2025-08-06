@@ -3,7 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Cashier;
-use Illuminate\Http\Request;
+use App\Http\Requests\StoreCashierRequest;
+use App\Http\Requests\UpdateCashierRequest;
 
 class CashierController extends Controller
 {
@@ -12,13 +13,9 @@ class CashierController extends Controller
         return Cashier::all();
     }
 
-    public function store(Request $request)
+    public function store(StoreCashierRequest $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|string',
-            'counter' => 'required|string',
-        ]);
-
+        $validated = $request->validated();
         $cashier = Cashier::create($validated);
         return response()->json($cashier, 201);
     }
@@ -28,10 +25,10 @@ class CashierController extends Controller
         return Cashier::findOrFail($id);
     }
 
-    public function update(Request $request, $id)
+    public function update(UpdateCashierRequest $request, $id)
     {
         $cashier = Cashier::findOrFail($id);
-        $cashier->update($request->all());
+        $cashier->update($request->validated());
         return $cashier;
     }
 

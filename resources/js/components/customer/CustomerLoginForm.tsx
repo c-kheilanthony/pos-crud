@@ -12,11 +12,29 @@ interface LoginFormProps {
 export function LoginForm({ onSuccess }: LoginFormProps) {
     const [email, setEmail] = useState('ash@example.com');
     const [password, setPassword] = useState('pikachu');
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
 
     const login = async () => {
-        const { data } = await api.post('/customer/login', { email, password });
-        localStorage.setItem('customerToken', data.token);
-        onSuccess(data.token);
+        setError('');
+        setLoading(true);
+
+        // Basic validation
+        if (!email || !password) {
+            setError('Email and password are required.');
+            setLoading(false);
+            return;
+        }
+
+        try {
+            const { data } = await api.post('/customer/login', { email, password });
+            localStorage.setItem('customerToken', data.token);
+            onSuccess(data.token);
+        } catch (err: any) {
+            setError(err.response?.data?.message || 'Login failed. Check your credentials.');
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -31,8 +49,9 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
                     <Label>Password</Label>
                     <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
                 </div>
-                <Button className="w-full" onClick={login}>
-                    Login
+                {error && <p className="text-red-500">{error}</p>}
+                <Button className="w-full" onClick={login} disabled={loading}>
+                    {loading ? 'Logging in...' : 'Login'}
                 </Button>
             </Card>
         </div>

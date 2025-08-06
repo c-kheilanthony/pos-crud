@@ -3,7 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Order;
-use Illuminate\Http\Request;
+use App\Http\Requests\StoreOrderRequest;
+use App\Http\Requests\UpdateOrderRequest;
 
 class CustomersCashierController extends Controller
 {
@@ -14,7 +15,7 @@ class CustomersCashierController extends Controller
     }
 
     // Create new order (customer)
-    public function store(Request $request)
+    public function store(StoreOrderRequest $request)
     {
         $validated = $request->validate([
             'customer_id' => 'required|exists:customers,id',
@@ -33,13 +34,11 @@ class CustomersCashierController extends Controller
     }
 
     // Update order (cashier confirms)
-    public function update(Request $request, $id)
+    public function update(UpdateOrderRequest $request, $id)
     {
         $order = Order::findOrFail($id);
 
-        $validated = $request->validate([
-            'cashier_id' => 'required|exists:cashiers,id'
-        ]);
+        $validated = $request->validated();
 
         $order->update($validated);
         return response()->json($order);
