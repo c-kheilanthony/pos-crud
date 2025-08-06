@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/button';
+import { Bell } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { CartPanel } from '../components/customer/CartPanel';
@@ -7,11 +8,20 @@ import { Item, ItemsGrid } from '../components/customer/ItemsGrid';
 import api from '../lib/customerApi';
 import { echo } from '../lib/echo';
 
+type RestockNotification = {
+    id: string; // unique, could be event uuid or timestamp+item
+    item_name: string;
+    restocked_at: string; // ISO string
+};
+
 export default function CustomerFlow() {
     const [token, setToken] = useState(localStorage.getItem('customerToken'));
     const [items, setItems] = useState<Item[]>([]);
     const [cart, setCart] = useState<Record<number, number>>({});
     const [customerId, setCustomerId] = useState<number | null>(null);
+    const [restockNotifications, setRestockNotifications] = useState<RestockNotification[]>([]);
+    const [notifPanelOpen, setNotifPanelOpen] = useState(false);
+    const [unreadNotifCount, setUnreadNotifCount] = useState(0);
 
     const fetchItems = async () => {
         const { data } = await api.get<Item[]>('/items');
@@ -23,7 +33,15 @@ export default function CustomerFlow() {
 
         const channel = echo.private(`customer.${customerId}`).listen('.item.restocked', (e: any) => {
             console.log('Restocked event for you →', e);
-            toast.info(`${e.item_name} is back in stock!`);
+            setRestockNotifications((prev) => [
+                {
+                    id: `${e.item_id}-${Date.now()}`,
+                    item_name: e.item_name,
+                    restocked_at: new Date().toISOString(),
+                },
+                ...prev,
+            ]);
+            if (!notifPanelOpen) setUnreadNotifCount((c) => c + 1);
         });
 
         return () => {
@@ -84,6 +102,49 @@ export default function CustomerFlow() {
             <div className="flex items-center justify-between">
                 <h2 className="text-2xl font-bold">Browse Items</h2>
                 <div className="space-x-2">
+                    <button
+                        className="relative rounded-full p-2 transition hover:bg-accent"
+                        onClick={() => {
+                            setNotifPanelOpen((v) => !v);
+                            setUnreadNotifCount(0);
+                        }}
+                    >
+                        <Bell className="h-6 w-6" />
+                        {unreadNotifCount > 0 && (
+                            <span className="absolute top-1 right-1 block h-2 w-2 rounded-full bg-red-500 ring-2 ring-background" />
+                        )}
+                    </button>
+                    {notifPanelOpen && (
+                        <div className="absolute right-0 z-50 mt-2 max-h-96 w-80 overflow-y-auto rounded-2xl border border-zinc-200 bg-white shadow-xl dark:border-zinc-800 dark:bg-zinc-900">
+                            <div className="flex items-center justify-between border-b border-zinc-200 px-4 py-2 dark:border-zinc-800">
+                                <span className="font-semibold">Restock Notifications</span>
+                                <button className="text-xs text-blue-600 hover:underline" onClick={() => setRestockNotifications([])}>
+                                    Clear all
+                                </button>
+                            </div>
+                            <ul className="divide-y divide-zinc-200 dark:divide-zinc-800">
+                                {restockNotifications.length === 0 ? (
+                                    <li className="px-4 py-4 text-center text-zinc-500">No notifications</li>
+                                ) : (
+                                    restockNotifications.map((notif, idx) => (
+                                        <li key={notif.id} className="flex items-center justify-between px-4 py-3">
+                                            <div>
+                                                <span className="font-medium">{notif.item_name}</span>
+                                                <div className="text-xs text-zinc-400">{new Date(notif.restocked_at).toLocaleString()}</div>
+                                            </div>
+                                            <button
+                                                className="ml-2 text-xs text-zinc-400 hover:text-red-500"
+                                                onClick={() => setRestockNotifications((prev) => prev.filter((n, i) => i !== idx))}
+                                            >
+                                                Clear
+                                            </button>
+                                        </li>
+                                    ))
+                                )}
+                            </ul>
+                        </div>
+                    )}
+
                     <Button variant="outline" onClick={logout}>
                         Logout
                     </Button>
