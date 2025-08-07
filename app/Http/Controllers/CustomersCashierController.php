@@ -45,7 +45,10 @@ class CustomersCashierController extends Controller
 
         foreach ($order->items as $item) {
             $item->decrement('stock', $item->pivot->quantity);
+            $item->refresh();
+            event(new \App\Events\ItemUpdated($item));
         }
+
 
         if ($order->customer && $order->customer->email) {
             Mail::to($order->customer->email)->queue(new OrderReceiptMail($order));
