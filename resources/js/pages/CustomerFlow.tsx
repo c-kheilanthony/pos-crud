@@ -111,6 +111,16 @@ export default function CustomerFlow() {
         return () => document.removeEventListener('mousedown', handler);
     }, [notifPanelOpen]);
 
+    useEffect(() => {
+        const channel = echo.channel('items').listen('.item.updated', (e: any) => {
+            console.log('Item updated event received', e);
+            setItems((prevItems) => prevItems.map((item) => (item.id === e.item.id ? { ...item, ...e.item } : item)));
+        });
+        return () => {
+            channel.stopListening('.item.updated');
+        };
+    }, []);
+
     if (!token) {
         return <LoginForm onSuccess={setToken} />;
     }

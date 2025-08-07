@@ -35,7 +35,9 @@ class ItemController extends Controller
         $validated = $request->validated();
 
         $previousStock = $item->stock;
-        $item->update($validated);          // save new data
+        $item->update($validated);          
+        \Log::info('Broadcasting item.updated for item id: ' . $item->id);
+        event(new \App\Events\ItemUpdated($item));
 
         // === Restock notification ===
         if ($previousStock == 0 && $item->stock > 0) {
