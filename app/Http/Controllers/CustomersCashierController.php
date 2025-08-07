@@ -26,6 +26,8 @@ class CustomersCashierController extends Controller
         ]);
 
         $order = Order::create($validated);
+        \Log::info('Broadcasting order.updated for order id: ' . $order->id);
+        event(new \App\Events\OrderUpdated($order->load(['customer', 'cashier', 'items'])));
         return response()->json($order, 201);
     }
 
@@ -42,6 +44,9 @@ class CustomersCashierController extends Controller
 
         $validated = $request->validated();
         $order->update($validated);
+        \Log::info('Broadcasting order.updated for order id: ' . $order->id);
+        event(new \App\Events\OrderUpdated($order->load(['customer', 'cashier', 'items'])));
+
 
         foreach ($order->items as $item) {
             $item->decrement('stock', $item->pivot->quantity);
@@ -53,6 +58,7 @@ class CustomersCashierController extends Controller
         if ($order->customer && $order->customer->email) {
             Mail::to($order->customer->email)->queue(new OrderReceiptMail($order));
         }
+        
 
         return response()->json([
             'message' => 'Order confirmed, stock updated, and email queued.',

@@ -7,6 +7,7 @@ import { OrderDetailModal } from '../components/cashier/OrderDetailModal';
 import { OrdersList } from '../components/cashier/OrdersList';
 import { Button } from '../components/ui/button';
 import api from '../lib/cashierApi';
+import { echo } from '../lib/echo';
 import type { OrderWithItems } from '../types';
 
 export default function CashierFlow() {
@@ -92,6 +93,16 @@ export default function CashierFlow() {
         }
     }, [token]);
 
+    useEffect(() => {
+        const channel = echo.channel('orders').listen('.order.updated', (e: any) => {
+            console.log('order.updated received!', e);
+            fetchOrders();
+        });
+        return () => {
+            channel.stopListening('.order.updated');
+        };
+    }, []);
+
     if (!token) {
         return <CashierLoginForm onSuccess={setToken} />;
     }
@@ -146,13 +157,12 @@ export default function CashierFlow() {
 
                             const success = await confirmOrder(order);
                             if (success) {
-                                await fetchOrders();
                                 await fetchItems();
                             }
                         }}
                         onReject={async (id) => {
                             await api.delete(`/orders/${id}`);
-                            await fetchOrders();
+
                             toast.error('Order rejected');
                         }}
                     />
@@ -176,7 +186,6 @@ export default function CashierFlow() {
                     await api.delete(`/orders/${id}`);
                     toast.error('Order rejected');
                     setShowOrderModal(false);
-                    fetchOrders();
                 }}
                 onConfirm={async (id) => {
                     if (!selectedOrder) return;
@@ -184,7 +193,7 @@ export default function CashierFlow() {
                     const success = await confirmOrder(selectedOrder);
                     if (success) {
                         setShowOrderModal(false);
-                        await fetchOrders();
+
                         await fetchItems();
                     }
                 }}
