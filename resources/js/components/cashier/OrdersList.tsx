@@ -8,9 +8,10 @@ interface Props {
     onView: (order: OrderWithItems) => void;
     onConfirm: (id: number) => void;
     onReject: (id: number) => void;
+    isLoading?: boolean;
 }
 
-export function OrdersList({ orders, onView, onConfirm, onReject }: Props) {
+export function OrdersList({ orders, onView, onConfirm, onReject, isLoading }: Props) {
     if (orders.length === 0) {
         return <p className="text-gray-500">No pending orders</p>;
     }
@@ -53,15 +54,25 @@ export function OrdersList({ orders, onView, onConfirm, onReject }: Props) {
                                 variant="ghost"
                                 className="h-16 w-16 text-green-600 transition-all hover:scale-105 hover:bg-green-500 hover:text-white focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
                                 onClick={() => onConfirm(o.id)}
+                                disabled={isLoading}
                             >
-                                <Check className="h-10 w-10" />
+                                {isLoading ? (
+                                    <span className="m-auto block h-8 w-8 animate-spin rounded-full border-2 border-gray-300 border-t-primary" />
+                                ) : (
+                                    <Check className="h-10 w-10" />
+                                )}
                             </Button>
                             <Button
                                 variant="ghost"
                                 className="h-16 w-16 text-red-600 transition-all hover:scale-105 hover:bg-red-500 hover:text-white focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
                                 onClick={() => onReject(o.id)}
+                                disabled={isLoading}
                             >
-                                <Trash2 className="h-10 w-10" />
+                                {isLoading ? (
+                                    <span className="m-auto block h-8 w-8 animate-spin rounded-full border-2 border-gray-300 border-t-red-500" />
+                                ) : (
+                                    <Trash2 className="h-10 w-10" />
+                                )}
                             </Button>
                         </div>
                     </Card>

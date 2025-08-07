@@ -18,6 +18,7 @@ export default function CashierFlow() {
     const [orders, setOrders] = useState<OrderWithItems[]>([]);
     const [selectedOrder, setSelectedOrder] = useState<OrderWithItems | null>(null);
     const [showOrderModal, setShowOrderModal] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
 
     const fetchOrders = async () => {
         const { data } = await api.get<OrderWithItems[]>('/orders');
@@ -106,6 +107,13 @@ export default function CashierFlow() {
     if (!token) {
         return <CashierLoginForm onSuccess={setToken} />;
     }
+    {
+        isLoading && (
+            <div className="bg-opacity-40 fixed inset-0 z-50 flex items-center justify-center bg-black">
+                <span className="h-16 w-16 animate-spin rounded-full border-4 border-gray-200 border-t-primary"></span>
+            </div>
+        );
+    }
 
     return (
         <div className="mx-auto max-w-5xl space-y-6 p-6">
@@ -147,22 +155,30 @@ export default function CashierFlow() {
                     </div>
                     <OrdersList
                         orders={orders}
+                        isLoading={isLoading}
                         onView={(order) => {
                             setSelectedOrder(order);
                             setShowOrderModal(true);
                         }}
                         onConfirm={async (id) => {
+                            setIsLoading(true);
                             const order = orders.find((o) => o.id === id);
-                            if (!order) return;
-
+                            if (!order) {
+                                setIsLoading(false);
+                                return;
+                            }
                             const success = await confirmOrder(order);
                             if (success) {
                                 await fetchItems();
+                                await fetchOrders();
                             }
+                            setIsLoading(false);
                         }}
                         onReject={async (id) => {
+                            setIsLoading(true);
                             await api.delete(`/orders/${id}`);
-
+                            await fetchOrders();
+                            setIsLoading(false);
                             toast.error('Order rejected');
                         }}
                     />
@@ -179,23 +195,28 @@ export default function CashierFlow() {
 
             {/* Order Detail Modal */}
             <OrderDetailModal
+                isLoading={isLoading}
                 open={showOrderModal}
                 order={selectedOrder}
                 onClose={() => setShowOrderModal(false)}
                 onReject={async (id) => {
+                    setIsLoading(true);
                     await api.delete(`/orders/${id}`);
+                    await fetchOrders();
+                    setIsLoading(false);
                     toast.error('Order rejected');
                     setShowOrderModal(false);
                 }}
                 onConfirm={async (id) => {
                     if (!selectedOrder) return;
-
+                    setIsLoading(true);
                     const success = await confirmOrder(selectedOrder);
                     if (success) {
                         setShowOrderModal(false);
-
                         await fetchItems();
+                        await fetchOrders();
                     }
+                    setIsLoading(false);
                 }}
             />
         </div>

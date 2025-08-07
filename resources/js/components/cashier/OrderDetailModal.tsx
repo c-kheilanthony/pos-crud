@@ -8,9 +8,10 @@ interface Props {
     onConfirm: (id: number) => Promise<void>;
     onReject: (id: number) => Promise<void>;
     onClose: () => void;
+    isLoading?: boolean;
 }
 
-export function OrderDetailModal({ open, order, onConfirm, onReject, onClose }: Props) {
+export function OrderDetailModal({ open, order, onConfirm, onReject, onClose, isLoading }: Props) {
     if (!open || !order) return null;
 
     // compute totals
@@ -57,10 +58,20 @@ export function OrderDetailModal({ open, order, onConfirm, onReject, onClose }: 
                 </div>
 
                 <DialogFooter className="flex justify-end space-x-2">
-                    <Button variant="destructive" onClick={() => onReject(order.id)}>
-                        Reject
+                    <Button onClick={() => onConfirm(order.id)} disabled={isLoading}>
+                        {isLoading ? (
+                            <span className="m-auto block h-6 w-6 animate-spin rounded-full border-2 border-gray-300 border-t-primary" />
+                        ) : (
+                            'Confirm'
+                        )}
                     </Button>
-                    <Button onClick={() => onConfirm(order.id)}>Confirm</Button>
+                    <Button variant={'destructive'} onClick={() => onReject(order.id)} disabled={isLoading}>
+                        {isLoading ? (
+                            <span className="m-auto block h-6 w-6 animate-spin rounded-full border-2 border-gray-300 border-t-red-500" />
+                        ) : (
+                            'Reject'
+                        )}
+                    </Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>
