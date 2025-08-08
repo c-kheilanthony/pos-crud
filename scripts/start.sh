@@ -1,30 +1,26 @@
 #!/usr/bin/env bash
 set -e
 
-# optional: wait for DATABASE_URL to be resolvable (simple loop)
+# Wait for the database to be reachable
 if [ -n "$DATABASE_URL" ]; then
-  echo "checking database connectivity..."
+  echo "Checking database connectivity..."
   for i in {1..30}; do
-    php -r "exit((bool) @pg_connect(getenv('DATABASE_URL')) ? 0 : 1);" && break || sleep 2
+    php -r "exit(@pg_connect(str_replace('postgresql://', 'host=', getenv('DATABASE_URL'))) ? 0 : 1);" && break || sleep 2
     echo -n "."
   done
   echo
 fi
 
-# install php deps in case
-composer install --no-dev --prefer-dist --no-interaction || true
-
-# run migrations and seed (force to skip confirmation)
-php artisan migrate --force || true
+# Run migrations and seeds
+php artisan migrate --force
 php artisan db:seed --force || true
 
-# cache config and routes for production
-php artisan config:cache || true
-php artisan route:cache || true
+# Cache config and routes for performance
+php artisan config:cache
+php artisan route:cache
 
-# create the storage symlink
+# Create the storage symlink
 php artisan storage:link || true
 
-# start php-fpm and nginx
-php-fpm -D
-nginx -g 'daemon off;'
+# Start PHP-FPM (Nginx will serve as reverse proxy in the container)
+php-fpm
