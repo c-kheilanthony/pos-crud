@@ -17,12 +17,15 @@ WORKDIR /var/www/html
 COPY composer.json composer.lock ./
 RUN composer install --no-dev --prefer-dist --no-interaction --no-scripts --optimize-autoloader || true
 
-# Install JS deps and build (optional)
-COPY package*.json ./
-RUN npm ci --silent && npm run build || true
 
 # Copy app
 COPY . .
+
+# Install JS deps and build production assets (run after copying full repo)
+RUN npm ci --silent
+RUN npm run build
+
+
 RUN chown -R www-data:www-data /var/www/html && \
     chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
