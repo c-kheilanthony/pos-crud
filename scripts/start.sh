@@ -32,12 +32,7 @@ if [ -n "$DATABASE_URL" ]; then
   fi
 fi
 
-# Run migrations and seeds
-echo "Running migrations..."
-php artisan migrate --force
-
-echo "Seeding database..."
-php artisan db:seed --force || true
+php artisan view:clear || true
 
 # Cache config and routes for performance
 echo "Caching config and routes..."
@@ -47,6 +42,12 @@ php artisan route:cache
 # Create the storage symlink
 echo "Creating storage link..."
 php artisan storage:link || true
+
+echo "Ensuring storage and cache directories exist and are writable..."
+mkdir -p storage/framework/views storage/framework/sessions storage/framework/cache bootstrap/cache storage/app/public
+chown -R www-data:www-data storage bootstrap/cache || true
+chmod -R 775 storage bootstrap/cache || true
+
 
 # Start PHP-FPM in background
 echo "Starting PHP-FPM..."

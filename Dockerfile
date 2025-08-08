@@ -23,6 +23,9 @@ RUN npm ci --silent && npm run build || true
 
 # Copy app
 COPY . .
+RUN chown -R www-data:www-data /var/www/html && \
+    chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+
 
 # Nginx config (we copy user-provided config below)
 COPY ./.nginx/default.conf /etc/nginx/conf.d/default.conf
