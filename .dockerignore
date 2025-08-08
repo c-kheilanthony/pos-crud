@@ -1,0 +1,9 @@
+node_modules
+vendor
+.env
+.env.* 
+.git
+.gitignore
+docker-compose.yml
+.DS_Store
+storage/*.sqlite
