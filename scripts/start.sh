@@ -8,18 +8,24 @@ if [ -n "$DATABASE_URL" ]; then
   echo "Checking database connectivity (10 tries)..."
   success=false
   for i in {1..10}; do
+# Replace the database check block with:
+  for i in {1..10}; do
     php -r "
       \$url = parse_url(getenv('DATABASE_URL'));
-      \$host = \$url['host'] ?? '';
-      \$port = \$url['port'] ?? 5432;
-      \$dbname = ltrim(\$url['path'] ?? '', '/');
-      \$user = \$url['user'] ?? '';
-      \$pass = \$url['pass'] ?? '';
-      \$conn_str = \"host=\$host port=\$port dbname=\$dbname user=\$user password=\$pass sslmode=require\";
-      exit(@pg_connect(\$conn_str) ? 0 : 1);
+      \$conn_str = sprintf(
+        'host=%s port=%s dbname=%s user=%s password=%s sslmode=require',
+        \$url['host'],
+        \${url['port'] ?? 5432},
+        ltrim(\${url['path'] ?? ''}, '/'),
+        \$url['user'] ?? '',
+        \$url['pass'] ?? ''
+      );
+      \$conn = @pg_connect(\$conn_str);
+      exit(\$conn ? 0 : 1);
     " && { success=true; break; } || sleep 2
     echo -n "."
   done
+
   echo
   if [ "$success" = true ]; then
     echo "Database reachable."
