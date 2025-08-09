@@ -112,7 +112,7 @@ export default function CustomerFlow() {
     }, [notifPanelOpen]);
 
     useEffect(() => {
-        const channel = echo.channel('items').listen('.item.updated', (e: any) => {
+        const channel = (window as any).Echo.channel('items').listen('.item.updated', (e: any) => {
             console.log('Item updated event received', e);
             setItems((prevItems) => prevItems.map((item) => (item.id === e.item.id ? { ...item, ...e.item } : item)));
         });
