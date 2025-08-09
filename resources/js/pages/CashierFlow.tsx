@@ -7,7 +7,7 @@ import { OrderDetailModal } from '../components/cashier/OrderDetailModal';
 import { OrdersList } from '../components/cashier/OrdersList';
 import { Button } from '../components/ui/button';
 import api from '../lib/cashierApi';
-import { echo } from '../lib/echo';
+import '../lib/echo';
 import type { OrderWithItems } from '../types';
 
 export default function CashierFlow() {
@@ -95,7 +95,7 @@ export default function CashierFlow() {
     }, [token]);
 
     useEffect(() => {
-        const channel = echo.channel('orders').listen('.order.updated', (e: any) => {
+        const channel = (window as any).Echo.channel('orders').listen('.order.updated', (e: any) => {
             console.log('order.updated received!', e);
             fetchOrders();
         });
