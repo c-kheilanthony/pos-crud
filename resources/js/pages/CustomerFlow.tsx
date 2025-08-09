@@ -6,7 +6,7 @@ import { CartPanel } from '../components/customer/CartPanel';
 import { LoginForm } from '../components/customer/CustomerLoginForm';
 import { Item, ItemsGrid } from '../components/customer/ItemsGrid';
 import api from '../lib/customerApi';
-import { echo } from '../lib/echo';
+import '../lib/echo';
 
 type RestockNotification = {
     id: string; // unique, could be event uuid or timestamp+item
@@ -33,7 +33,7 @@ export default function CustomerFlow() {
     useEffect(() => {
         if (!customerId) return;
 
-        const channel = echo.private(`customer.${customerId}`).listen('.item.restocked', (e: any) => {
+        const channel = (window as any).Echo.private(`customer.${customerId}`).listen('.item.restocked', (e: any) => {
             console.log('Restocked event for you →', e);
             setRestockNotifications((prev) => [
                 {
