@@ -7,16 +7,15 @@ echo "=== Laravel Render Startup Script ==="
 if [ -n "$DATABASE_URL" ]; then
   echo "Checking database connectivity (10 tries)..."
   success=false
-  for i in {1..10}; do
-# Replace the database check block with:
+  # Fixed: Removed duplicate for loop and corrected PHP string interpolation
   for i in {1..10}; do
     php -r "
       \$url = parse_url(getenv('DATABASE_URL'));
       \$conn_str = sprintf(
         'host=%s port=%s dbname=%s user=%s password=%s sslmode=require',
         \$url['host'],
-        \${url['port'] ?? 5432},
-        ltrim(\${url['path'] ?? ''}, '/'),
+        \${url['port']} ?? 5432,
+        ltrim(\${url['path']} ?? '', '/'),
         \$url['user'] ?? '',
         \$url['pass'] ?? ''
       );
@@ -53,7 +52,6 @@ echo "Ensuring storage and cache directories exist and are writable..."
 mkdir -p storage/framework/views storage/framework/sessions storage/framework/cache bootstrap/cache storage/app/public
 chown -R www-data:www-data storage bootstrap/cache || true
 chmod -R 775 storage bootstrap/cache || true
-
 
 # Start PHP-FPM in background
 echo "Starting PHP-FPM..."
