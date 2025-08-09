@@ -31,11 +31,16 @@ function bearerAuthorizer(channel: any, options: any): any {
     };
 }
 
-export const echo = new Echo({
-    broadcaster: 'pusher',
-    key: import.meta.env.VITE_PUSHER_APP_KEY,
-    cluster: import.meta.env.VITE_PUSHER_APP_CLUSTER,
-    forceTLS: true,
-    authorizer: bearerAuthorizer, // ← use custom authorizer
-});
+const pushKey = import.meta.env.VITE_PUSHER_APP_KEY;
+if (pushKey) {
+    (window as any).Echo = new Echo({
+        broadcaster: 'pusher',
+        key: import.meta.env.VITE_PUSHER_APP_KEY,
+        cluster: import.meta.env.VITE_PUSHER_APP_CLUSTER,
+        forceTLS: true,
+        authorizer: bearerAuthorizer, // ← use custom authorizer
+    });
+} else {
+    console.warn('Pusher key missing; Echo not started.');
+}
 console.log('Echo initialized with key:', import.meta.env.VITE_PUSHER_APP_KEY);
